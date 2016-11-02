@@ -1,3 +1,50 @@
-<p>
-  About Works!
-</p>
+<div class="container">
+  <h1>Entity Form</h1>
+  <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formStructure">
+    <label>
+      <span>Full name</span>
+      <input
+        type="text"
+        placeholder="Your full name"
+        formControlName="name">
+    </label>
+    <div
+      class="error"
+      *ngIf="formStructure.get('name').hasError('required') && formStructure.get('name').touched">
+      Name is required
+    </div>
+    <div
+      class="error"
+      *ngIf="formStructure.get('name').hasError('minlength') && formStructure.get('name').touched">
+      Minimum of 2 characters
+    </div>
+    <div formGroupName="account">
+      <label>
+        <span>Email address</span>
+        <input
+          type="email"
+          placeholder="Your email address"
+          formControlName="email">
+      </label>
+      <div
+        class="error"
+        *ngIf="formStructure.get('account').get('email').hasError('required') && formStructure.get('account').get('email').touched">
+        Email is required
+      </div>
+      <label>
+        <span>Confirm address</span>
+        <input
+          type="email"
+          placeholder="Confirm your email address"
+          formControlName="confirm">
+      </label>
+      <div
+        class="error"
+        *ngIf="formStructure.get('account').get('confirm').hasError('required') && formStructure.get('account').get('confirm').touched">
+        Confirming email is required
+      </div>
+    </div>
+    {{ formStructure.value | json }}
+    <button type="submit" [disabled]="formStructure.invalid">Sign up</button>
+  </form>
+</div>
