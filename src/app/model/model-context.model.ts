@@ -1,45 +1,47 @@
-import { ModelService } from './model-service.model';
-import ModelId from "./model-id-model";
+import ModelStore from './model-store.model';
+import ModelId from "./model-id.model";
+import Model from "./model.model";
+import ModelDescription from "./model-description.model";
+import {IRelationship} from "./relationship.model";
 
 export default class ModelContext
 {
-  modelObjects : Array;
-  modelMap : Map;
-  modelIdMap : Map;
+  modelObjects : Array<Model>;
+  modelMap : Map<ModelId, Model>;
+  modelIdMap : Map<string, ModelId>;
   availableTypes : Array;
   resources : Array;
+  store : ModelStore;
 
-  constructor(public service : ModelService) {
-    this.availableTypes = Object.keys(service);
-    this.resources = Object.values(service);
+  constructor(public store : ModelStore) {
+    this.availableTypes = Object.keys(store);
+    this.resources = Object.values(store);
 
     this.modelMap = new Map();
     this.modelIdMap = new Map();
     this.modelObjects = [];
   }
-  loadAll() : Promise {
-    let promises = this.resources.map((resource) => this._loadSingleResource(resource));
-    return Promise.all(promises)
+  loadAll() : Array<Promise> {
+    return this.resources.map((resource) => this._loadSingleResource(resource));
   }
-  load(typeName) {
+  load(typeName: string) : Promise<Array> {
     if (!typeName) {
-      return this.loadAll();
+      return Promise.all(this.loadAll());
     }
     if (!this.availableTypes.includes(typeName)) {
       return Promise.reject(`Request Model Type ${typeName} does not exist.`)
     }
-    let resource = this.service[typeName];
-    return this._loadSingleResource(resource);
+    return this._loadSingleResource(typeName);
   }
-  modelIdForDataAndDesc(id: ModelId, modelDescription) { // Todo: move to store
-    let modelId = this.modelIdMap.get(id);
+  modelIdForDataAndDesc(data: string, modelDescription: ModelDescription) : ModelId { // Todo: move to store
+    let modelId = this.modelIdMap.get(data);
     if (!modelId) {
-      let modelId = ModelId.withExistingData(this.service, modelDescription, id);
-      this.modelIdMap.set(id, modelId);
+      let modelId = ModelId.withExistingData(modelDescription, this.store, data);
+      this.modelIdMap.set(data, modelId);
     }
     return modelId;
   }
-  modelForModelId(modelId) {
+  modelWithModelId(modelId: ModelId) : Model {
     let model = this.modelMap.get(modelId);
     if (!model) {
       model = modelId.modelDescription.create(this);
@@ -47,13 +49,13 @@ export default class ModelContext
     }
     return model;
   }
-  modelForId(id, modelDescription) {
+  modelForDataAndDesc(id: string, modelDescription: ModelDescription) : Model {
     let modelId = this.modelIdForDataAndDesc(id, modelDescription);
-    return this.modelForModelId(modelId);
+    return this.modelWithModelId(modelId);
   }
-  realizeFault(relation) {
-    let {value} = relation;
-    let model = this.modelObjects.find((model) => value === model.id);
+  realizeFault(property: IRelationship) {
+    let {value} = property;
+    let model = this.modelWithModelId(value);
     // Todo: Maybe use promises throughout all getters and setters instead of raising Errors when accessing faulty models
     if (!model) {
       throw new Error(`Model with id ${value} either does not exist or has not been loaded.`)
@@ -66,12 +68,15 @@ export default class ModelContext
     }
     relation.inverse.value = relation.model;
   }
+  realizePropertiesForModel(model: Model) {
+    this.store.getObjectById
+  }
   save() {
 
   }
-  _loadSingleResource(resource) {
-    return resource.get()
-      .then((modelObjects) => {
+  _loadSingleResource(typeName: string) : Promise<Array> {
+    return this.store.getAll(typeName)
+      .then((modelObjects: Array<Model>) => {
         this.modelObjects.push(...modelObjects);
         return modelObjects;
       })

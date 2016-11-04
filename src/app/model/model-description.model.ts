@@ -1,52 +1,56 @@
 import Model from "src/app/model/model.model";
 import PropertyDescription from "src/app/model/property-description.model";
 import ModelContext from "src/app/model/model-context.model";
-import ModelId from "src/app/model/model-id-model";
+import ModelId from "src/app/model/model-id.model";
 import Property from "src/app/model/property.model";
 
 export default class ModelDescription<T> {
   ModelClass : T;
-  propertyDescriptions : Array<PropertyDescription>;
-  get name() : string {
+  propertyDescriptions: Set<PropertyDescription>;
+  keyProperties: Set<PropertyDescription>;
+  get name(): string {
     return this.ModelClass.name;
   }
-  constructor(ModelClass : T) {
+  constructor(ModelClass: T) {
     this.ModelClass = ModelClass || Model;
   }
-  addPropertyDescription(propDef : PropertyDescription) {
-    this.propertyDescriptions.push(propDef);
+  addPropertyDescription(propDef: PropertyDescription) {
+    if (propDef.isKey) {
+      this.keyProperties.add(propDef);
+    }
+    this.propertyDescriptions.add(propDef);
   }
   create(context : ModelContext) : Model {
-    let model : T = Object.create(this.ModelClass.prototype, {
+    let model: T = Object.create(this.ModelClass.prototype);
+    let properties = new Set();
+    for (let propDesc of this.propertyDescriptions) {
+      let property = propDesc.decorate(model);
+      properties.add(property);
+    }
+    Object.defineProperties(model, {
       "modelDescription": {
         value: this
       },
       "_properties": {
-        value: this.propertyDescriptions.map((property) => property.decorate(model))
-      },
-      "isDirty": {
-        value: false
-      },
-      "isFault": {
-        value: true
+        value: properties
       },
       'id': {
-        value: new ModelId(this, context.service),
+        value: new ModelId(this, context.store),
         writable: false
       },
       '_id': { // this = ModelClass
         set: function(value) {
-          this.id.setValue(value);
+          model.id.setValue(value);
         },
         get: function() {
-          return this.id.data;
+          return model.id.data;
         }
       },
       "toObject": {
         get: function() {
           return () => {
             var object = Object.create(null);
-            this["_properties"].forEach((property) => property.toObject(object));
+            model["_properties"].forEach((property) => property.toObject(object));
             return object;
           }
         }
@@ -58,7 +62,7 @@ export default class ModelDescription<T> {
 }
 export interface IModel {
   modelDescription: ModelDescription;
-  _properties: Array<Property>;
+  _properties: Set<Property>;
   isDirty: boolean;
   isFault: boolean;
   readonly id: ModelId;

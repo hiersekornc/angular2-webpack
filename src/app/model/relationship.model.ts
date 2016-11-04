@@ -4,7 +4,7 @@ import Model from "src/app/model/model.model";
 export default class Relationship extends Property implements IRelationship {
   protected _value : Model;
 
-  attach(entity : Model, skipInverse : boolean) {
+  attach(entity: Model, skipInverse: boolean = false) {
     if (this.value) {
       this.value.detach(this, true)
     }
@@ -13,7 +13,7 @@ export default class Relationship extends Property implements IRelationship {
       this.value.attach(this, true);
     }
   }
-  detach(entity : Model, skipInverse : boolean) {
+  detach(entity: Model, skipInverse: boolean = false) {
     if (this.value && !skipInverse) {
       this.value.detach(this, true);
     }

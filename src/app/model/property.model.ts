@@ -1,21 +1,21 @@
 import PropertyDescription from "src/app/model/property-description.model";
 import Model from "src/app/model/model.model";
 
-export default class Property {
-  description : PropertyDescription;
-  model : Model;
-  isFault : boolean;
-  protected _value : any;
+export default class Property<T> {
+  description: PropertyDescription;
+  model: Model;
+  isFault: boolean;
+  protected _value: T;
 
-  get value() {
+  get value() : T {
     if (this.isFault) {
       this.model.fireFault(this);
     }
     return this._value;
   }
-  set value(value : any) {
+  set value(value : T) {
     this._value = value;
-    if(this.isFault) {
+    if (this.isFault) {
       this.isFault = false;
     }
   }
@@ -25,11 +25,11 @@ export default class Property {
 
     this.isFault = true;
   }
-  realizeFault(value : any) {
+  realizeFault(value : T) {
     this._value = value;
     this.isFault = false;
   }
-  toObject() {
+  toObject() : T {
     return this.value;
   }
   fromObject(object : Object) {
