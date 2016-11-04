@@ -1,47 +1,35 @@
-import PropertyDescription from "src/app/model/property-description.model";
-import Model from "src/app/model/model.model";
+import Model from "managed-object.model";
 import {IRelationship} from "src/app/model/relationship.model";
 import Property from "src/app/model/property.model";
+import RelationshipCollectionDescription from "src/app/model/relationship-collection-description.model";
 
-export default class RelationshipCollection<T> extends Property implements IRelationship {
-  protected _value : Array<T>;
+export default class RelationshipCollection<T> extends Property<Set> implements IRelationship {
+  protected _value: Set<T>;
 
-  constructor(description : PropertyDescription, model : Model) {
+  constructor(description: RelationshipCollectionDescription, model: Model) {
     super(description, model);
 
-    this._value = [];
+    this._value = new Set<T>();
   }
   attach(entity) {
-    this.push(entity);
+    return this.value.add(entity);
   }
 
   detach(entity) {
-    let idx = this.indexOf(entity);
-    if (idx > -1) {
-      this.removeAt(idx);
+    return this.value.delete(entity);
+  }
+  toObject() : Set<string> {
+    let idSet: Set<string> = new Set();
+    for (let model of this.value) {
+      idSet.add(model.id);
     }
+    return idSet;
   }
-  toObject() : Array<string> {
-    return this._value.map((entity) => entity.id)
-  }
-  fromObject(idArray : Array) {
-    let models = idArray.map((id) => this.model.context.modelForId(id));
-    this.push(...models);
-  }
-  push(entity) {
-    return this.value.push(entity);
-  }
-  indexOf(entity) {
-    return this.value.indexOf(entity);
-  }
-  objectAtIndex(index) : Model {
-    let model = this.value[index];
-    if(!model) {
-      return; // error?
+  static fromObject(description: RelationshipCollectionDescription, model: Model, idArray: Array<string>) : RelationshipCollection {
+    let relCol = new this(description, model);
+    for (let data of idArray) {
+      relCol.attach( model.context.modelForDataAndDesc(data, description.destinationModel) );
     }
-    return model;
-  }
-  removeAt(index) {
-    return this.value.splice(index, 1);
+    return relCol;
   }
 }

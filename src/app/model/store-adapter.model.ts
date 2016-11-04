@@ -1,11 +1,11 @@
-import ModelId from "./model-id.model";
-import ModelSchema from "./model-schema.model";
-import ModelDescription from "./model-description.model";
+import ModelId from "./managed-object-id.model";
+import ModelSchema from "./managed-object-model.model";
+import EntityDescription from "./entity-description.model";
 
 export default class StoreAdapter {
-    modelDesc: ModelDescription;
+    modelDesc: EntityDescription;
 
-    constructor(modelDesc: ModelDescription) {
+    constructor(modelDesc: EntityDescription) {
         this.modelDesc = modelDesc;
     }
 

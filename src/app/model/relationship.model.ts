@@ -1,7 +1,7 @@
 import Property from "src/app/model/property.model";
-import Model from "src/app/model/model.model";
+import Model from "managed-object.model";
 
-export default class Relationship extends Property implements IRelationship {
+export default class Relationship extends Property<Model> implements IRelationship {
   protected _value : Model;
 
   attach(entity: Model, skipInverse: boolean = false) {
@@ -20,7 +20,7 @@ export default class Relationship extends Property implements IRelationship {
     this.value = null;
   }
   toObject() {
-    return this.value.model.id.toObject();
+    return this.value.id.toObject();
   }
   realizeFault(entity) {
     this._value = entity;
@@ -29,6 +29,6 @@ export default class Relationship extends Property implements IRelationship {
 }
 
 export interface IRelationship {
-  attach(model : Model, skipInverse : boolean) ;
-  detach(model : Model, skipInverse : boolean) ;
+  attach(model: Model, skipInverse: boolean);
+  detach(model: Model, skipInverse: boolean);
 }

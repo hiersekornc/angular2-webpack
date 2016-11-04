@@ -1,10 +1,11 @@
 import RelationshipDescription from "relationship-description.model";
 import RelationshipCollection from "src/app/model/relationship-collection.model";
-import Model from "src/app/model/model.model";
+import Model from "managed-object.model";
 
-class RelationshipCollectionDescription extends RelationshipDescription {
 
-  decorate(model : Model) {
+export default class RelationshipCollectionDescription extends RelationshipDescription {
+
+  decorate(model: Model) : RelationshipCollection {
     let add = this.accessorNameForAddingEntity();
     let remove = this.accessorNameForRemovingEntity();
     let collection = new RelationshipCollection(this, model);
@@ -19,15 +20,15 @@ class RelationshipCollectionDescription extends RelationshipDescription {
     });
     return collection;
   }
-  accessorNameForAddingEntity() {
+  accessorNameForAddingEntity() : string {
     let entityName = RelationshipCollectionDescription.capitalizeFirstLetter(this.name);
-    return "add" + entityName;
+    return `add${entityName}`;
   }
-  accessorNameForRemovingEntity() {
+  accessorNameForRemovingEntity() : string {
     let entityName = RelationshipCollectionDescription.capitalizeFirstLetter(this.name);
-    return "remove" + entityName;
+    return `remove${entityName}`;
   }
-  static capitalizeFirstLetter(string : string) {
+  static capitalizeFirstLetter(string: string) : string {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 }

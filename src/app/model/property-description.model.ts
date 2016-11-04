@@ -1,5 +1,5 @@
 import Property from "src/app/model/property.model";
-import Model from "./model.model";
+import Model from "./managed-object.model";
 
 export default class PropertyDescription<T> {
   name: string;
